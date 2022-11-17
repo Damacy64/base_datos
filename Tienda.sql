@@ -45,4 +45,56 @@ select * from ventas
 select * from producto
 select * from item
 
--- - 
+-- - crear un Procedimiento Almacenado que permita obtener los precios de la tabla Productos de acuerdo con su ID y agregarlo en la tabla Items y al mismo tiempo
+-- - calcule el importe de acuerdo con la cantidad contenida en cada registro de Items
+go
+create procedure obtenerprecio
+as
+begin
+select producto.precio,producto.id_producto from producto join item on producto.id_producto = item.id_producto
+update item set item.precio = producto.precio from producto where item.id_producto = producto.id_producto
+update item set item.importe = precio * 1.16
+end
+
+exec obtenerprecio
+
+-- - Crear un segundo procedimiento almacenado que calcule el subtotal, IVA y Total de cada una de las ventas que contiene la tabla Ventas.
+-- - Considerando que el monto del IVA es el 16% del subtotal.
+go
+create procedure precioimporte
+as
+begin
+update ventas set ventas.subtotal = item.importe from item where ventas.id_cliente = item.id_venta
+update ventas set ventas.iva = 16
+update ventas set total = subtotal * 1.16
+end
+
+exec precioimporte
+
+-- - Crear una Vista que muestre los datos de cada cliente y la cantidad de ventas que pertenecen a cada uno de los clientes.
+go
+create view datoscliente_venta
+as
+select nombre,ciudad,estado,pais,ventas.id_cliente, count(ventas.id_cliente) as compras from ventas,cliente where ventas.id_cliente = cliente.id_cliente
+group by nombre,ciudad,estado,pais,ventas.id_cliente
+
+select * from datoscliente_venta
+
+-- - Crear una Vista que muestre los datos de los productos y la cantidad de ventas en las que aparece cada uno de los productos.
+go
+create view datosproducto_venta
+as
+select nombre,marca,modelo,categoria,producto.id_producto, count(ventas.id_cliente) as ventas from ventas,producto where ventas.id_cliente = producto.id_producto
+group by nombre,marca,modelo,categoria,producto.id_producto,ventas.id_cliente
+
+select * from datosproducto_venta
+
+-- - Crear una consulta que muestre los 5 productos más vendidos.
+go
+create view top_vendidos
+as
+select top 5 nombre,marca,modelo,categoria,producto.id_producto, count(ventas.id_cliente) as ventas from ventas,producto where ventas.id_cliente = producto.id_producto
+group by nombre,marca,modelo,categoria,producto.id_producto,ventas.id_cliente
+order by ventas desc
+
+select * from top_vendidos
