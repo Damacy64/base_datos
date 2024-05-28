@@ -30,17 +30,17 @@ nombre varchar(255) check (nombre in ('xv años','boda','graduacion','primera com
 
 create table Entradas(
 ID_OEntrada int primary key identity(1,1),
-entrada varchar(255) check (entrada in('crema elote', 'crema poblana', 'crema de champiñones', 'propio'))
+entrada varchar(255)
 )
 
 create table Medios(
 ID_OMedio int primary key identity(1,1),
-platoMedio varchar(255) check (platoMedio in('spaguetti excelencia', 'spaguetti cremoso', 'macarrones con queso', 'propio'))
+platoMedio varchar(255)
 )
 
 create table Fuertes(
 ID_OFuerte int primary key identity(1,1),
-platoFuerte varchar(255) check (platoFuerte in('chuleta adobada', 'pechuga rellena con chipotle', 'pierna enchilada', 'propio'))
+platoFuerte varchar(255)
 )
 
 create table Comida(
@@ -89,11 +89,11 @@ foreign key  (ID_evento) references Eventos(ID_evento) on delete cascade on upda
 )
 
 --insertamos los salones
-insert into Salones values('Salon La Condesa', 100, 'La Condesa', 300)
-insert into Salones values('Salon Claveria', 100, 'Claveria', 500)
-insert into Salones values('Salon Azcapotzalco', 100, 'Azcapotzalco', 350)
-insert into Salones values('Salon El Rosario', 100, 'El Rosario', 250)
-insert into Salones values('Salon Tacubaya', 100, 'Tacubaya', 300)
+insert into Salones values('Salon La Condesa', 100, 300, 'La Condesa')
+insert into Salones values('Salon Claveria', 100, 500, 'Claveria' )
+insert into Salones values('Salon Azcapotzalco', 100, 350, 'Azcapotzalco')
+insert into Salones values('Salon El Rosario', 100, 250, 'El Rosario')
+insert into Salones values('Salon Tacubaya', 100, 300, 'Tacubaya')
 --insertamos clientes
 insert into Cliente values('Mario', 'Ortiz', 'Lopez','5512859375')
 insert into Cliente values ('María', 'González', 'Pérez', '5512345678')
@@ -310,7 +310,38 @@ RETURN
 );
 --verificamos la fecha
 SELECT * FROM fn_DisponibilidadSalones('2024-07-20');
-
+--crear funcion para actualizar los menus
+CREATE PROCEDURE actualizarEntradas
+@ID_OEntrada int,
+@Entrada varchar(255)
+AS
+BEGIN
+	UPDATE Entradas
+	SET entrada = COALESCE(@Entrada,entrada)
+	WHERE ID_OEntrada = @ID_OEntrada
+END
+--------------------------------------------
+CREATE PROCEDURE actualizarMedios
+@ID_OMedio int,
+@Medio varchar(255)
+AS
+BEGIN
+	UPDATE Medios
+	SET platoMedio = COALESCE(@ID_OMedio,platoMedio)
+	WHERE ID_OMedio = @ID_OMedio
+END
+---------------------------------------------
+CREATE PROCEDURE actualizarFuertes
+@ID_OFuerte int,
+@Fuerte varchar(255)
+AS
+BEGIN
+	UPDATE Fuertes
+	SET platoFuerte = COALESCE(@Fuerte,platoFuerte)
+	WHERE ID_OFuerte = @ID_OFuerte
+END
+---------------------------------------------
+EXEC actualizarEntradas @ID_OEntrada = 1, @Entrada = 'crema de elote'
 --consultas normales de las tablas
 select * from Eventos_salones
 select * from Salones
@@ -331,4 +362,3 @@ select * from EventosConMenus
 select * from EventosPorSalon
 select * from MenusCompletos
 select * from vw_ResumenEventosTipo
-select * from DisponibilidadSalones
