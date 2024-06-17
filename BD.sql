@@ -20,7 +20,8 @@ ID_cliente int primary key identity(1,1),
 nombre varchar(255),
 apellido_p varchar(255),
 apellido_m varchar(255),
-telefono varchar(10)
+telefono varchar(10),
+correo varchar(255)
 )
 
 create table Tipo_eventos(
@@ -86,6 +87,12 @@ ID_cliente int,
 ID_evento int,
 foreign key  (ID_cliente) references Cliente(ID_cliente) on delete cascade on update cascade,
 foreign key  (ID_evento) references Eventos(ID_evento) on delete cascade on update cascade
+)
+
+create table Administrador(
+ID_admin int primary key identity(1,1),
+nombre varchar(255),
+contrasenia varchar(255)
 )
 
 --insertamos los salones
@@ -289,6 +296,34 @@ SELECT te.nombre AS tipo_evento, COUNT(e.ID_evento) AS cantidad_eventos
 FROM Eventos e
 JOIN Tipo_eventos te ON e.tipo_evento = te.ID_tipoE
 GROUP BY te.nombre;
+--Crear vista para administrador
+CREATE VIEW ContratosPorSalon AS
+SELECT 
+    s.ID_salon,
+    s.nombre AS NombreSalon,
+    s.ubicacion,
+    c.ID_contrato,
+    cli.ID_cliente,
+    cli.nombre AS NombreCliente,
+    cli.apellido_p AS ApellidoPaternoCliente,
+    cli.apellido_m AS ApellidoMaternoCliente,
+    cli.telefono AS TelefonoCliente,
+	cli.correo AS Correo,
+    e.ID_evento,
+    e.fecha AS FechaEvento,
+    e.hora_ini AS HoraInicioEvento,
+    e.hora_fin AS HoraFinEvento,
+    e.personas AS NumeroPersonas,
+    te.nombre AS TipoEvento
+FROM 
+    Salones s
+    INNER JOIN Eventos_salones es ON s.ID_salon = es.ID_salon
+    INNER JOIN Eventos e ON es.ID_evento = e.ID_evento
+    INNER JOIN Contratos c ON e.ID_evento = c.ID_evento
+    INNER JOIN Cliente cli ON c.ID_cliente = cli.ID_cliente
+    INNER JOIN Tipo_eventos te ON e.tipo_evento = te.ID_tipoE;
+
+
 --crear funcion para checar la disponibilidad de las fechas
 CREATE FUNCTION fn_DisponibilidadSalones (@fecha DATE)
 RETURNS TABLE
@@ -310,36 +345,36 @@ RETURN
 );
 --verificamos la fecha
 SELECT * FROM fn_DisponibilidadSalones('2024-07-20');
---crear funcion para actualizar los menus
-CREATE PROCEDURE actualizarEntradas
-@ID_OEntrada int,
-@Entrada varchar(255)
-AS
-BEGIN
-	UPDATE Entradas
-	SET entrada = COALESCE(@Entrada,entrada)
-	WHERE ID_OEntrada = @ID_OEntrada
-END
+--crear funcion para actualizar los menus (esto ya no)
+--CREATE PROCEDURE actualizarEntradas
+--@ID_OEntrada int,
+--@Entrada varchar(255)
+--AS
+--BEGIN
+--	UPDATE Entradas
+--	SET entrada = COALESCE(@Entrada,entrada)
+--	WHERE ID_OEntrada = @ID_OEntrada
+--END
 --------------------------------------------
-CREATE PROCEDURE actualizarMedios
-@ID_OMedio int,
-@Medio varchar(255)
-AS
-BEGIN
-	UPDATE Medios
-	SET platoMedio = COALESCE(@ID_OMedio,platoMedio)
-	WHERE ID_OMedio = @ID_OMedio
-END
----------------------------------------------
-CREATE PROCEDURE actualizarFuertes
-@ID_OFuerte int,
-@Fuerte varchar(255)
-AS
-BEGIN
-	UPDATE Fuertes
-	SET platoFuerte = COALESCE(@Fuerte,platoFuerte)
-	WHERE ID_OFuerte = @ID_OFuerte
-END
+--CREATE PROCEDURE actualizarMedios
+--@ID_OMedio int,
+--@Medio varchar(255)
+--AS
+--BEGIN
+--	UPDATE Medios
+--	SET platoMedio = COALESCE(@ID_OMedio,platoMedio)
+--	WHERE ID_OMedio = @ID_OMedio
+--END
+-----------------------------------------------
+--CREATE PROCEDURE actualizarFuertes
+--@ID_OFuerte int,
+--@Fuerte varchar(255)
+--AS
+--BEGIN
+--	UPDATE Fuertes
+--	SET platoFuerte = COALESCE(@Fuerte,platoFuerte)
+--	WHERE ID_OFuerte = @ID_OFuerte
+--END
 ---------------------------------------------
 EXEC actualizarEntradas @ID_OEntrada = 1, @Entrada = 'crema de elote'
 --consultas normales de las tablas
@@ -362,3 +397,5 @@ select * from EventosConMenus
 select * from EventosPorSalon
 select * from MenusCompletos
 select * from vw_ResumenEventosTipo
+select * from ContratosPorSalon
+--agregar en el administrador que pueda actualizar el contrato, añadiendo o quitando servicios
