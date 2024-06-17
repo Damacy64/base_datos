@@ -376,7 +376,19 @@ SELECT * FROM fn_DisponibilidadSalones('2024-07-20');
 --	WHERE ID_OFuerte = @ID_OFuerte
 --END
 ---------------------------------------------
-EXEC actualizarEntradas @ID_OEntrada = 1, @Entrada = 'crema de elote'
+--EXEC actualizarEntradas @ID_OEntrada = 1, @Entrada = 'crema de elote'
+--Procedimiento para eliminar un evento
+CREATE PROCEDURE remover_evento
+    @ID_evento INT
+AS
+BEGIN
+    BEGIN TRANSACTION;
+    DELETE FROM Eventos
+    WHERE ID_evento = @ID_evento;
+    COMMIT TRANSACTION;
+END;
+EXEC remover_evento @ID_evento = 2;
+
 --consultas normales de las tablas
 select * from Eventos_salones
 select * from Salones
